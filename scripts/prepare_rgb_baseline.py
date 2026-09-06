@@ -17,7 +17,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SPLIT_MANIFEST = PROJECT_ROOT / "results" / "dataset_split" / "recording_split_manifest.csv"
 OUTPUT_DIR = PROJECT_ROOT / "results" / "rgb_baseline"
-DEFAULT_ZIP_PATH = Path("/content/drive/MyDrive/WiSARD/WiSARDv1.zip")
+DEFAULT_ZIP_PATH = Path("/content/drive/MyDrive/WiSARD") / "WiSARDv1.zip"
 LOCAL_ZIP_PATH = PROJECT_ROOT / "data" / "raw" / "WiSARD" / "WiSARDv1.zip"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 ANNOTATION_EXTENSIONS = {".txt", ".ann", ".label", ".labels"}
