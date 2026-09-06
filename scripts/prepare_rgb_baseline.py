@@ -98,6 +98,7 @@ def main() -> None:
     invalid_boxes: list[str] = []
     annotation_read_errors: list[str] = []
     excluded_unannotated_images: list[str] = []
+    excluded_invalid_box_images: list[str] = []
     class_ids = Counter()
     recording_counts = Counter()
     partition_images = Counter()
