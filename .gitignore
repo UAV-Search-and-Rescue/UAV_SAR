@@ -69,3 +69,5 @@ desktop.ini
 # ==============================
 *.tmp
 *.temp
+.rocketride/
+.env
