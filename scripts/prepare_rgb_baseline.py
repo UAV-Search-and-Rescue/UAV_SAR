@@ -168,7 +168,13 @@ def main() -> None:
     fields = ["image_member_path", "annotation_member_path", "recording_name", "recording_path", "collection_context", "partition", "modality"]
     write_csv(OUTPUT_DIR / "rgb_dataset_manifest.csv", fields, manifest_rows)
 
-    ready = bool(manifest_rows) and not any((malformed_annotations, invalid_boxes, annotation_read_errors))
+    ready = (
+        bool(manifest_rows)
+        and all(recording_counts[partition] > 0 and partition_images[partition] > 0 for partition in ("development", "test"))
+        and not malformed_annotations
+        and not annotation_read_errors
+        and len(invalid_boxes) == len(excluded_invalid_box_images)
+    )
     report = [
         "WiSARD RGB-only E0 dataset preparation",
         "========================================",
