@@ -35,6 +35,7 @@ grouping_candidates.csv
 metadata_term_matches.csv
 metadata_term_snippets.csv
 naming_patterns.csv
+organization_investigation_report.txt
 pairing_report.csv
 rgb_thermal_grouping.csv
 visualize_pairs.py
