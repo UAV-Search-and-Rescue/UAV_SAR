@@ -1,7 +1,7 @@
-"""Prepare a deterministic RGB-only index from the frozen context split.
+"""Prepare a supervised RGB index from the frozen context split.
 
-The original ZIP is inspected in place with zipfile.ZipFile. Image members are
-never opened or decoded; only annotation members are read as UTF-8 text.
+The ZIP is inspected read-only. Image members are never opened or decoded;
+only matched annotation members are read as text.
 """
 
 from __future__ import annotations
@@ -14,7 +14,6 @@ import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SPLIT_MANIFEST = PROJECT_ROOT / "results" / "dataset_split" / "recording_split_manifest.csv"
 OUTPUT_DIR = PROJECT_ROOT / "results" / "rgb_baseline"
@@ -22,9 +21,7 @@ DEFAULT_ZIP_PATH = Path("/content/drive/MyDrive/WiSARD/WiSARDv1.zip")
 LOCAL_ZIP_PATH = PROJECT_ROOT / "data" / "raw" / "WiSARD" / "WiSARDv1.zip"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 ANNOTATION_EXTENSIONS = {".txt", ".ann", ".label", ".labels"}
-REQUIRED_SPLIT_COLUMNS = {
-    "recording_name", "recording_path", "collection_context", "modality", "partition",
-}
+REQUIRED_SPLIT_COLUMNS = {"recording_name", "recording_path", "collection_context", "modality", "partition"}
 
 
 def resolve_zip_path() -> Path:
@@ -57,7 +54,7 @@ def write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, object]]) 
         writer.writerows(rows)
 
 
-def annotation_result(archive: zipfile.ZipFile, member: str) -> tuple[list[int], list[str], list[str], list[str]]:
+def validate_annotation(archive: zipfile.ZipFile, member: str) -> tuple[list[int], list[str], list[str], list[str]]:
     class_ids: list[int] = []
     malformed: list[str] = []
     invalid_boxes: list[str] = []
@@ -70,10 +67,9 @@ def annotation_result(archive: zipfile.ZipFile, member: str) -> tuple[list[int],
         return class_ids, malformed, invalid_boxes, errors
 
     for line_number, raw_line in enumerate(text.splitlines(), start=1):
-        line = raw_line.strip()
-        if not line:
+        fields = raw_line.strip().split()
+        if not fields:
             continue
-        fields = line.split()
         if len(fields) != 5:
             malformed.append(f"{member}:{line_number}")
             continue
@@ -83,10 +79,7 @@ def annotation_result(archive: zipfile.ZipFile, member: str) -> tuple[list[int],
         except ValueError:
             malformed.append(f"{member}:{line_number}")
             continue
-        if class_id < 0 or not all(math.isfinite(value) for value in values):
-            invalid_boxes.append(f"{member}:{line_number}")
-            continue
-        if not all(0.0 <= value <= 1.0 for value in values):
+        if class_id < 0 or not all(math.isfinite(value) for value in values) or not all(0.0 <= value <= 1.0 for value in values):
             invalid_boxes.append(f"{member}:{line_number}")
             continue
         class_ids.append(class_id)
@@ -97,55 +90,56 @@ def main() -> None:
     rows = read_frozen_vis_rows()
     zip_path = resolve_zip_path()
     if not zip_path.is_file():
-        raise FileNotFoundError(
-            f"WiSARDv1.zip not found at {zip_path}. "
-            "Mount Google Drive in Colab or set WISAR_ZIP_PATH."
-        )
+        raise FileNotFoundError(f"WiSARDv1.zip not found at {zip_path}. Mount Google Drive in Colab or set WISAR_ZIP_PATH.")
 
     manifest_rows: list[dict[str, object]] = []
-    missing_images: list[str] = []
-    missing_annotations: list[str] = []
     malformed_annotations: list[str] = []
     invalid_boxes: list[str] = []
     annotation_read_errors: list[str] = []
+    excluded_unannotated_images: list[str] = []
     class_ids = Counter()
     recording_counts = Counter()
-    partition_counts = Counter()
     partition_images = Counter()
     partition_annotations = Counter()
+    fully_annotated_recordings: list[str] = []
+    partially_annotated_recordings: list[str] = []
+    unannotated_recordings: list[str] = []
 
     with zipfile.ZipFile(zip_path, "r") as archive:
         members = sorted(info.filename.replace("\\", "/") for info in archive.infolist())
-        member_set = set(members)
         members_by_recording: dict[str, list[str]] = defaultdict(list)
         for member in members:
-            recording_component = Path(member).parts[0] if Path(member).parts else ""
-            members_by_recording[recording_component].append(member)
+            parts = Path(member).parts
+            if parts:
+                members_by_recording[parts[0]].append(member)
 
         for row in rows:
             recording_name = row["recording_name"]
+            partition = row["partition"]
             recording_members = members_by_recording.get(recording_name, [])
-            images = {
-                Path(member).stem: member
-                for member in recording_members
-                if Path(member).suffix.lower() in IMAGE_EXTENSIONS
-            }
+            images = {Path(member).stem: member for member in recording_members if Path(member).suffix.lower() in IMAGE_EXTENSIONS}
             annotations = {
                 Path(member).stem: member
                 for member in recording_members
                 if Path(member).suffix.lower() in ANNOTATION_EXTENSIONS
+                and Path(member).name.lower() != "count.txt"
+                and Path(member).stem in images
             }
-            recording_counts[row["partition"]] += 1
-            for stem in sorted(set(images) | set(annotations)):
-                image_member = images.get(stem, "")
-                annotation_member = annotations.get(stem, "")
-                if not image_member:
-                    missing_images.append(f"{recording_name}:{stem}")
-                    continue
-                if not annotation_member:
-                    missing_annotations.append(f"{recording_name}:{stem}")
-                    continue
-                ids, malformed, invalid, errors = annotation_result(archive, annotation_member)
+            recording_counts[partition] += 1
+            annotated_stems = set(images) & set(annotations)
+            missing_stems = sorted(set(images) - annotated_stems)
+            excluded_unannotated_images.extend(f"{recording_name}:{images[stem]}" for stem in missing_stems)
+            if not annotated_stems:
+                unannotated_recordings.append(recording_name)
+            elif len(annotated_stems) == len(images):
+                fully_annotated_recordings.append(recording_name)
+            else:
+                partially_annotated_recordings.append(recording_name)
+
+            for stem in sorted(annotated_stems):
+                image_member = images[stem]
+                annotation_member = annotations[stem]
+                ids, malformed, invalid, errors = validate_annotation(archive, annotation_member)
                 class_ids.update(ids)
                 malformed_annotations.extend(malformed)
                 invalid_boxes.extend(invalid)
@@ -156,35 +150,29 @@ def main() -> None:
                     "recording_name": recording_name,
                     "recording_path": row["recording_path"],
                     "collection_context": row["collection_context"],
-                    "partition": row["partition"],
+                    "partition": partition,
                     "modality": row["modality"],
                 })
-                partition_images[row["partition"]] += 1
-                partition_annotations[row["partition"]] += 1
-
-        expected_recordings = {row["recording_name"] for row in rows}
-        absent_recordings = sorted(expected_recordings - set(members_by_recording))
-        for recording_name in absent_recordings:
-            missing_images.append(f"{recording_name}:recording_folder")
+                partition_images[partition] += 1
+                partition_annotations[partition] += 1
 
     manifest_rows.sort(key=lambda row: (str(row["partition"]), str(row["recording_path"]), str(row["image_member_path"])))
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    fields = [
-        "image_member_path", "annotation_member_path", "recording_name", "recording_path",
-        "collection_context", "partition", "modality",
-    ]
+    fields = ["image_member_path", "annotation_member_path", "recording_name", "recording_path", "collection_context", "partition", "modality"]
     write_csv(OUTPUT_DIR / "rgb_dataset_manifest.csv", fields, manifest_rows)
 
-    ready = not any((missing_images, missing_annotations, malformed_annotations, invalid_boxes, annotation_read_errors))
+    ready = bool(manifest_rows) and not any((malformed_annotations, invalid_boxes, annotation_read_errors))
     report = [
         "WiSARD RGB-only E0 dataset preparation",
         "========================================",
         f"Frozen split manifest: {SPLIT_MANIFEST}",
         f"ZIP inspected read-only: {zip_path}",
         f"VIS recordings: {sum(recording_counts.values())}",
+        f"Fully annotated recordings: {len(fully_annotated_recordings)}",
+        f"Partially annotated recordings: {len(partially_annotated_recordings)}",
+        f"Unannotated recordings: {len(unannotated_recordings)}",
         f"Matched image/annotation pairs: {len(manifest_rows)}",
-        f"Missing images: {len(missing_images)}",
-        f"Missing annotations: {len(missing_annotations)}",
+        f"Excluded unannotated images: {len(excluded_unannotated_images)}",
         f"Malformed annotations: {len(malformed_annotations)}",
         f"Invalid bounding boxes: {len(invalid_boxes)}",
         f"Annotation read errors: {len(annotation_read_errors)}",
@@ -194,22 +182,14 @@ def main() -> None:
         "-------------------",
     ]
     for partition in ("development", "test"):
-        report.append(
-            f"{partition}: recordings={recording_counts[partition]}, "
-            f"images={partition_images[partition]}, annotations={partition_annotations[partition]}"
-        )
+        report.append(f"{partition}: recordings={recording_counts[partition]}, images={partition_images[partition]}, annotations={partition_annotations[partition]}")
     report.extend([
         "",
         f"RGB dataset READY FOR E0 TRAINING: {'YES' if ready else 'NO'}",
         "No model was trained. The frozen split assignment was not changed.",
         "Images were not opened or decoded; only ZIP paths and annotation text were inspected.",
+        "Unannotated recordings remain in their frozen partitions but are excluded from the supervised RGB manifest.",
     ])
-    if not ready:
-        report.extend([
-            "",
-            "First issues:",
-            *(missing_images[:10] + missing_annotations[:10] + malformed_annotations[:10] + invalid_boxes[:10]),
-        ])
     (OUTPUT_DIR / "rgb_dataset_validation_report.txt").write_text("\n".join(report) + "\n", encoding="utf-8")
     print("\n".join(report))
 
