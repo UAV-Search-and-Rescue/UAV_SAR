@@ -58,6 +58,7 @@ def validate_annotation(archive: zipfile.ZipFile, member: str) -> tuple[list[int
     class_ids: list[int] = []
     malformed: list[str] = []
     invalid_boxes: list[str] = []
+    excluded_invalid_box_images: list[str] = []
     errors: list[str] = []
     try:
         with archive.open(member, "r") as handle:
@@ -144,6 +145,11 @@ def main() -> None:
                 malformed_annotations.extend(malformed)
                 invalid_boxes.extend(invalid)
                 annotation_read_errors.extend(errors)
+                if invalid:
+                    excluded_invalid_box_images.append(
+                        f"{recording_name}:{image_member}:{annotation_member}"
+                    )
+                    continue
                 manifest_rows.append({
                     "image_member_path": image_member,
                     "annotation_member_path": annotation_member,
@@ -173,6 +179,8 @@ def main() -> None:
         f"Unannotated recordings: {len(unannotated_recordings)}",
         f"Matched image/annotation pairs: {len(manifest_rows)}",
         f"Excluded unannotated images: {len(excluded_unannotated_images)}",
+        f"Invalid bounding boxes excluded: {len(invalid_boxes)}",
+        f"Images excluded because annotations contain invalid boxes: {len(excluded_invalid_box_images)}",
         f"Malformed annotations: {len(malformed_annotations)}",
         f"Invalid bounding boxes: {len(invalid_boxes)}",
         f"Annotation read errors: {len(annotation_read_errors)}",
@@ -189,6 +197,7 @@ def main() -> None:
         "No model was trained. The frozen split assignment was not changed.",
         "Images were not opened or decoded; only ZIP paths and annotation text were inspected.",
         "Unannotated recordings remain in their frozen partitions but are excluded from the supervised RGB manifest.",
+        "Invalid bounding-box coordinates were not clipped, repaired, or modified; their image/annotation pairs were excluded.",
     ])
     (OUTPUT_DIR / "rgb_dataset_validation_report.txt").write_text("\n".join(report) + "\n", encoding="utf-8")
     print("\n".join(report))
