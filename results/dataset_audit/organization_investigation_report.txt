@@ -1,0 +1,40 @@
+WiSARv1 organization investigation
+=================================
+Dataset root: D:\Hackathons\miniproject5sem\UAV-Search-and-Rescue\data\raw\WiSARD
+Files observed: 1
+Directories observed: 1
+Metadata-like files observed: 0
+Image pixels opened: no
+Dataset files modified/copied/moved/extracted: no
+Train/validation/test split created: no
+
+Evidence labels
+---------------
+documented: 0 metadata files contain search terms
+observed: 0 filename/content/path observations
+unknown: absence of a pattern is not evidence that groups are different flights or sessions
+
+Interpretation limits
+---------------------
+Names and directory layouts are observations, not proof of independent flights.
+A defensible leakage-safe grouping key requires documentation or corroborating metadata such as
+explicit flight/session/sequence IDs, timestamps, GPS/trajectory boundaries, or collection records.
+RGB/thermal path overlap is reported in rgb_thermal_grouping.csv; shared paths are observed
+correspondence, while non-overlap remains unknown.
+
+Reports
+-------
+.gitkeep
+audit_report.txt
+dataset_statistics.csv
+directory_extension_counts.csv
+directory_file_counts.csv
+directory_tree.txt
+extension_counts.csv
+grouping_candidates.csv
+metadata_term_matches.csv
+metadata_term_snippets.csv
+naming_patterns.csv
+pairing_report.csv
+rgb_thermal_grouping.csv
+visualize_pairs.py
