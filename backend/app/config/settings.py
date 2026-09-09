@@ -30,6 +30,11 @@ MONGODB_DATABASE = os.getenv(
     "uav_sar"
 )
 
+E0_MODEL_PATH = os.getenv(
+    "E0_MODEL_PATH",
+    ""
+)
+
 CONFIDENCE_THRESHOLD = float(
     os.getenv(
         "CONFIDENCE_THRESHOLD",
