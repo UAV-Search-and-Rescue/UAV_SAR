@@ -1,10 +1,12 @@
 from pymongo import MongoClient
+import certifi
 
 from app.config.settings import MONGODB_URI, MONGODB_DATABASE
 
 
 client = MongoClient(
     MONGODB_URI,
+    tlsCAFile=certifi.where(),
     serverSelectionTimeoutMS=5000
 )
 

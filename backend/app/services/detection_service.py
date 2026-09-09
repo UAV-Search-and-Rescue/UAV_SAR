@@ -3,7 +3,7 @@ from time import perf_counter
 from uuid import uuid4
 
 from fastapi import UploadFile
-
+from app.services.localization_service import localize_detections
 from app.models.model_registry import get_detector
 from app.models.schemas import DetectionResponse
 from app.storage.result_store import MongoDBResultStore
@@ -25,6 +25,9 @@ async def run_detection(
     detections = await detector.predict(
         rgb=rgb,
         thermal=thermal
+    )
+    detections = await localize_detections(
+        detections=detections
     )
 
     latency_ms = (perf_counter() - start_time) * 1000
