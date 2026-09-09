@@ -4,5 +4,5 @@ from abc import ABC, abstractmethod
 class Detector(ABC):
 
     @abstractmethod
-    def predict(self, rgb, thermal=None):
+    async def predict(self, rgb, thermal=None):
         raise NotImplementedError
