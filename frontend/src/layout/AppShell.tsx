@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Crosshair } from 'lucide-react'
+import { Crosshair, LogOut } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 import { useMissionPlayback } from '../context/MissionPlaybackContext'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import { TacticalField } from '../components/ui/TacticalField'
@@ -13,6 +14,8 @@ export function AppShell() {
   const { pathname } = useLocation()
   const active = currentItem(pathname)
   const { recording, rgbFrameId, thermalFrameId, gridCell, playing } = useMissionPlayback()
+  const { operator, signOut } = useAuth()
+  if (!operator) return null
 
   return (
     <div className="relative flex min-h-svh bg-tactical text-slate-200">
@@ -65,6 +68,30 @@ export function AppShell() {
         <div className="border-t border-cyan-900/40 px-5 py-4 text-xs text-slate-500">
           <p className="telemetry text-xs">{recording.collectionContext}</p>
           <p className="mt-1">Replay only · no live UAV link</p>
+          <div className="mt-3 flex items-center gap-2">
+            {operator.picture ? (
+              <img
+                src={operator.picture}
+                alt=""
+                className="h-7 w-7 rounded-full border border-cyan-400/40"
+                referrerPolicy="no-referrer"
+              />
+            ) : null}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[11px] text-cyan-100">{operator.name}</p>
+              <p className="truncate font-mono text-[10px] text-slate-500">
+                {operator.email}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={signOut}
+              aria-label="Sign out"
+              className="rounded-md border border-cyan-400/30 p-1.5 text-slate-400 transition-all duration-300 hover:border-orange-500/50 hover:text-orange-300"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </aside>
 
