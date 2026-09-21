@@ -1,0 +1,5 @@
+recording_name,recording_path,reason,evidence_status,interpretation
+200321_Baker_Phantom_VIS,200321_Baker_Phantom_VIS,recording_name_did_not_contain_exact_VIS_or_IR_token,observed,One ambiguous recording-folder row; no collection context was assigned.
+200402_Carnation_Inspire_VIS,200402_Carnation_Inspire_VIS,recording_name_did_not_contain_exact_VIS_or_IR_token,observed,One ambiguous recording-folder row; no collection context was assigned.
+200402_Karen_Inspire_VIS,200402_Karen_Inspire_VIS,recording_name_did_not_contain_exact_VIS_or_IR_token,observed,One ambiguous recording-folder row; no collection context was assigned.
+200717_Mission_FLIR_VIS,200717_Mission_FLIR_VIS,recording_name_did_not_contain_exact_VIS_or_IR_token,observed,One ambiguous recording-folder row; no collection context was assigned.

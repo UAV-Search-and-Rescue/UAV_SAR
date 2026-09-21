@@ -1,0 +1,75 @@
+WiSARD Dataset Audit Report
+===========================
+Dataset path: D:\Hackathons\miniproject5sem\WiSARD_Multi_Modal_Sample
+Read-only audit: yes (no dataset files were written, moved, copied, renamed, or deleted)
+
+1. Structure
+Top-level folders: 210417_MtErie_Enterprise_IR_0004, 210417_MtErie_Enterprise_VIS_0003
+RGB/visible folder: 210417_MtErie_Enterprise_VIS_0003
+Infrared/thermal folder: 210417_MtErie_Enterprise_IR_0004
+RGB image locations: 210417_MtErie_Enterprise_VIS_0003/*.jpeg (recursive search)
+Thermal image locations: 210417_MtErie_Enterprise_IR_0004/*.jpeg (recursive search)
+Annotation locations: 210417_MtErie_Enterprise_VIS_0003/*.txt and 210417_MtErie_Enterprise_IR_0004/*.txt, excluding count.txt
+File formats: .jpeg, .txt
+Other metadata files: count.txt, count.txt
+
+2. Counts and pairing
+RGB images: 264
+Thermal images: 264
+RGB annotations: 264
+Thermal annotations: 264
+Direct same-frame RGB/thermal matches: 263
+Inferred RGB-to-thermal frame offset: 1 (thermal_frame = rgb_frame + offset)
+One-to-one pairing under offset: yes
+Missing RGB counterparts under inferred pairing: 0
+Missing thermal counterparts under inferred pairing: 0
+Missing RGB annotations: 0 image labels, 0 label-only files
+Missing thermal annotations: 0 image labels, 0 label-only files
+
+3. Image integrity and dimensions
+Unreadable/corrupt images: 0
+RGB dimensions: {(3840, 2160): 264}
+Thermal dimensions: {(640, 512): 264}
+RGB and thermal dimensions match by paired frame: no
+
+4. Annotation content
+Annotation format: YOLO-style normalized rows: class_id center_x center_y width height
+Invalid annotation files: 0
+RGB class IDs: {0: 1022} (class names are not provided)
+Thermal class IDs: {0: 1006} (class names are not provided)
+RGB bounding boxes: 1022
+Thermal bounding boxes: 1006
+RGB objects per image: {0: 4, 1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 4, 17: 4, 18: 4, 19: 4, 20: 4, 21: 4, 22: 4, 23: 4, 24: 4, 25: 4, 26: 4, 27: 4, 28: 4, 29: 4, 30: 4, 31: 4, 32: 4, 33: 4, 34: 4, 35: 4, 36: 4, 37: 4, 38: 4, 39: 4, 40: 4, 41: 4, 42: 4, 43: 4, 44: 4, 45: 4, 46: 4, 47: 4, 48: 4, 49: 4, 50: 3, 51: 1, 52: 1, 53: 1, 54: 4, 55: 4, 56: 4, 57: 4, 58: 4, 59: 4, 60: 4, 61: 4, 62: 4, 63: 4, 64: 4, 65: 4, 66: 4, 67: 4, 68: 4, 69: 4, 70: 4, 71: 4, 72: 4, 73: 4, 74: 4, 75: 4, 76: 4, 77: 4, 78: 4, 79: 4, 80: 4, 81: 4, 82: 4, 83: 4, 84: 4, 85: 4, 86: 4, 87: 4, 88: 4, 89: 4, 90: 4, 91: 4, 92: 4, 93: 4, 94: 4, 95: 4, 96: 4, 97: 4, 98: 4, 99: 4, 100: 4, 101: 4, 102: 4, 103: 4, 104: 4, 105: 4, 106: 4, 107: 4, 108: 4, 109: 4, 110: 4, 111: 4, 112: 4, 113: 4, 114: 4, 115: 4, 116: 4, 117: 4, 118: 4, 119: 4, 120: 4, 121: 4, 122: 4, 123: 4, 124: 4, 125: 4, 126: 4, 127: 4, 128: 4, 129: 4, 130: 4, 131: 4, 132: 4, 133: 4, 134: 4, 135: 4, 136: 4, 137: 4, 138: 4, 139: 4, 140: 4, 141: 4, 142: 4, 143: 4, 144: 4, 145: 4, 146: 4, 147: 4, 148: 4, 149: 4, 150: 4, 151: 4, 152: 4, 153: 4, 154: 4, 155: 4, 156: 4, 157: 4, 158: 4, 159: 4, 160: 4, 161: 4, 162: 4, 163: 4, 164: 4, 165: 4, 166: 2, 167: 2, 168: 3, 169: 2, 170: 2, 171: 4, 172: 4, 173: 4, 174: 4, 175: 4, 176: 4, 177: 4, 178: 4, 179: 4, 180: 4, 181: 4, 182: 4, 183: 4, 184: 4, 185: 4, 186: 4, 187: 4, 188: 4, 189: 4, 190: 4, 191: 4, 192: 4, 193: 4, 194: 4, 195: 4, 196: 4, 197: 4, 198: 4, 199: 4, 200: 4, 201: 4, 202: 0, 203: 0, 204: 0, 205: 1, 206: 4, 207: 4, 208: 4, 209: 4, 210: 4, 211: 4, 212: 4, 213: 4, 214: 4, 215: 4, 216: 4, 217: 4, 218: 4, 219: 4, 220: 4, 221: 4, 222: 4, 223: 4, 224: 4, 225: 4, 226: 4, 227: 4, 228: 4, 229: 4, 230: 4, 231: 4, 232: 4, 233: 4, 234: 4, 235: 4, 236: 4, 237: 4, 238: 4, 239: 4, 240: 4, 241: 4, 242: 4, 243: 4, 244: 4, 245: 4, 246: 4, 247: 4, 248: 4, 249: 4, 250: 4, 251: 4, 252: 4, 253: 4, 254: 4, 255: 4, 256: 4, 257: 4, 258: 4, 259: 4, 260: 4, 261: 4, 262: 4, 263: 4}
+Thermal objects per image: {1: 4, 2: 4, 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 4, 9: 4, 10: 4, 11: 4, 12: 4, 13: 4, 14: 4, 15: 4, 16: 4, 17: 4, 18: 4, 19: 4, 20: 4, 21: 4, 22: 4, 23: 4, 24: 4, 25: 3, 26: 4, 27: 4, 28: 4, 29: 4, 30: 4, 31: 4, 32: 4, 33: 4, 34: 4, 35: 4, 36: 4, 37: 4, 38: 4, 39: 4, 40: 4, 41: 4, 42: 4, 43: 4, 44: 4, 45: 4, 46: 4, 47: 4, 48: 4, 49: 4, 50: 3, 51: 1, 52: 1, 53: 1, 54: 1, 55: 4, 56: 4, 57: 4, 58: 4, 59: 4, 60: 4, 61: 4, 62: 4, 63: 4, 64: 4, 65: 4, 66: 4, 67: 4, 68: 4, 69: 4, 70: 4, 71: 4, 72: 4, 73: 4, 74: 4, 75: 4, 76: 4, 77: 4, 78: 4, 79: 4, 80: 4, 81: 4, 82: 4, 83: 4, 84: 4, 85: 4, 86: 4, 87: 4, 88: 4, 89: 4, 90: 4, 91: 4, 92: 4, 93: 4, 94: 4, 95: 4, 96: 4, 97: 4, 98: 4, 99: 4, 100: 4, 101: 4, 102: 4, 103: 4, 104: 4, 105: 4, 106: 4, 107: 4, 108: 4, 109: 4, 110: 3, 111: 4, 112: 4, 113: 4, 114: 4, 115: 4, 116: 4, 117: 4, 118: 4, 119: 4, 120: 4, 121: 4, 122: 4, 123: 4, 124: 4, 125: 4, 126: 4, 127: 4, 128: 4, 129: 4, 130: 4, 131: 4, 132: 4, 133: 4, 134: 4, 135: 4, 136: 4, 137: 4, 138: 4, 139: 4, 140: 4, 141: 4, 142: 4, 143: 4, 144: 4, 145: 4, 146: 4, 147: 4, 148: 4, 149: 4, 150: 4, 151: 4, 152: 4, 153: 4, 154: 4, 155: 4, 156: 4, 157: 4, 158: 4, 159: 4, 160: 4, 161: 4, 162: 4, 163: 4, 164: 4, 165: 4, 166: 2, 167: 1, 168: 1, 169: 1, 170: 1, 171: 2, 172: 4, 173: 4, 174: 4, 175: 4, 176: 4, 177: 4, 178: 4, 179: 4, 180: 4, 181: 4, 182: 4, 183: 4, 184: 4, 185: 4, 186: 4, 187: 4, 188: 4, 189: 4, 190: 4, 191: 4, 192: 4, 193: 4, 194: 4, 195: 4, 196: 4, 197: 4, 198: 4, 199: 4, 200: 4, 201: 4, 202: 2, 203: 0, 204: 0, 205: 0, 206: 2, 207: 4, 208: 4, 209: 4, 210: 4, 211: 4, 212: 3, 213: 3, 214: 3, 215: 4, 216: 4, 217: 4, 218: 4, 219: 4, 220: 4, 221: 4, 222: 4, 223: 4, 224: 4, 225: 4, 226: 4, 227: 4, 228: 4, 229: 4, 230: 4, 231: 4, 232: 4, 233: 4, 234: 4, 235: 4, 236: 4, 237: 4, 238: 4, 239: 4, 240: 4, 241: 4, 242: 4, 243: 4, 244: 4, 245: 4, 246: 4, 247: 4, 248: 4, 249: 4, 250: 4, 251: 4, 252: 4, 253: 4, 254: 4, 255: 4, 256: 4, 257: 4, 258: 4, 259: 4, 260: 4, 261: 4, 262: 4, 263: 4, 264: 4}
+RGB images with zero objects: 4
+Thermal images with zero objects: 0
+RGB images with multiple objects: 1014
+Thermal images with multiple objects: 1002
+RGB bbox width statistics (pixels): count=1022, min=21.000960, mean=58.050963, median=57.000960, max=137.998080
+RGB bbox height statistics (pixels): count=1022, min=39.000960, mean=87.026597, median=90.000720, max=155.999520
+RGB bbox area statistics (pixels squared): count=1022, min=1637.965438, mean=5146.596314, median=4446.061200, max=21527.634241
+RGB relative bbox area statistics: count=1022, min=0.000197, mean=0.000620, median=0.000536, max=0.002595
+thermal bbox width statistics (pixels): count=1006, min=6.499840, mean=14.180915, median=12.999680, max=38.499840
+thermal bbox height statistics (pixels): count=1006, min=9.244672, mean=22.837553, median=22.755328, max=42.666496
+thermal bbox area statistics (pixels squared): count=1006, min=111.996501, mean=328.296957, median=296.533163, max=1535.993856
+thermal relative bbox area statistics: count=1006, min=0.000342, mean=0.001002, median=0.000905, max=0.004687
+
+5. Splits, duplicates, and leakage signals
+Train/validation/test split information: not provided in the dataset.
+Suspicious filenames: count.txt metadata files are present; image names otherwise follow modality plus eight-digit frame numbering.
+Duplicate filename note: count.txt occurs once per modality folder, which is expected because the folders differ.
+Sequence evidence: yes; both folders contain contiguous numbered frames from a single shared 210417_MtErie_Enterprise sequence.
+Potential leakage: adjacent frames are highly likely to depict near-identical scenes. Random image-level splitting could place neighboring frames from the same sequence in different splits and inflate validation/test performance.
+
+6. Other structural findings
+The visible and thermal streams use different frame-number ranges (RGB 0-263; thermal 1-264), so pairing requires the observed one-frame offset rather than identical filenames.
+The count.txt totals are metadata summaries and are not annotation files.
+Class names are absent; the only observed class ID is 0.
+Malformed annotation files: none
+Unreadable image files: none
+
+Generated outputs
+- audit_report.txt
+- dataset_statistics.csv
+- pairing_report.csv
+- visualize_pairs.py
