@@ -1,0 +1,13 @@
+{
+  "model": "yolo11n.pt",
+  "input_size": 640,
+  "epochs": 1,
+  "batch_size": 2,
+  "seed": 20260905,
+  "device": "cpu",
+  "pretrained": true,
+  "confidence_threshold": 0.25,
+  "iou_threshold": 0.5,
+  "split_policy": "chronological 70/15/15",
+  "source_dataset": "D:\\Hackathons\\miniproject5sem\\WiSARD_Multi_Modal_Sample"
+}

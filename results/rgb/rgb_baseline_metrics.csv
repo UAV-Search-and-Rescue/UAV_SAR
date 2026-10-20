@@ -1,0 +1,2 @@
+model,input_size,train_images,val_images,test_images,precision,recall,f1,map50,map50_95,epochs,batch_size,seed,evaluation_note
+yolo11n.pt,640,184,39,41,0.0,0.0,0.0,0.0,0.0,1,2,20260905,test metrics are descriptive; tune only on validation

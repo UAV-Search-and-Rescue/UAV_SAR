@@ -1,0 +1,7 @@
+# Generated reference-only dataset description.
+path: D:/Hackathons/miniproject5sem/UAV-Search-and-Rescue/results/rgb
+train: train_image_references.txt
+val: val_image_references.txt
+test: test_image_references.txt
+nc: 1
+names: ['class_0']

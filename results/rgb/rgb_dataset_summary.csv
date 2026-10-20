@@ -1,0 +1,12 @@
+statistic,value
+RGB folder,210417_MtErie_Enterprise_VIS_0003
+RGB images,264
+RGB annotations,264
+image extensions,['.jpeg']
+dimensions,"[(3840, 2160)]"
+class IDs,[0]
+bounding boxes,1022
+zero-object images,3
+malformed annotation files,0
+unreadable images,0
+metadata files ignored,['count.txt']

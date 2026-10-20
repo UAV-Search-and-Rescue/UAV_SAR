@@ -1,0 +1,2 @@
+WiSARD/
+  [F] .gitkeep

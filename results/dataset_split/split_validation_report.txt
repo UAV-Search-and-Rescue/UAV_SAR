@@ -1,0 +1,22 @@
+WiSARD final collection-context split validation
+===============================================
+Audit source: D:\Hackathons\miniproject5sem\UAV-Search-and-Rescue\results\dataset_audit\recording_stream_summary.csv
+Unexpected contexts excluded by policy: 200426_SkookumCreek_Mavic_Mini, 200505_Bellingham_Mavic_Mini, 200528_Everson_Mavic_Mini, 200614_SuddenValley_Phantom, 200704_Baker_FLIR, 200910_Carnation_FLIR, 200929_Karen_FLIR
+Excluded ambiguous recordings: 4
+Collection-context overlap: zero
+
+Partitions
+----------
+development: recordings=31, VIS=15, IR=16, images=28021, contexts=210417_MtErie_Enterprise;210529_Carnation_Enterprise;210924_FHL_Enterprise;220109_Baker_Enterprise
+test: recordings=16, VIS=6, IR=10, images=10768, contexts=210327_Airfield_FLIR;210812_Hannegan_Enterprise
+
+Grouped development CV
+----------------------
+fold 1: validation=210417_MtErie_Enterprise (recordings=6, images=1416); training=210529_Carnation_Enterprise;210924_FHL_Enterprise;220109_Baker_Enterprise (recordings=25, images=26605); test=excluded
+fold 2: validation=210529_Carnation_Enterprise (recordings=4, images=4109); training=210417_MtErie_Enterprise;210924_FHL_Enterprise;220109_Baker_Enterprise (recordings=27, images=23912); test=excluded
+fold 3: validation=210924_FHL_Enterprise (recordings=18, images=17527); training=210417_MtErie_Enterprise;210529_Carnation_Enterprise;220109_Baker_Enterprise (recordings=13, images=10494); test=excluded
+fold 4: validation=220109_Baker_Enterprise (recordings=3, images=4969); training=210417_MtErie_Enterprise;210529_Carnation_Enterprise;210924_FHL_Enterprise (recordings=28, images=23052); test=excluded
+
+No individual-image random split was created.
+No model was trained.
+The original ZIP and dataset files were not opened, extracted, or modified.
