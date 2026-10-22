@@ -6,7 +6,7 @@ E1 is a thermal/IR-only person-detection baseline. It reads the frozen recording
 
 ## Current status
 
-**Implementation in progress — static validation complete; data preparation and training pending.** The notebook defaults to `STAGE = "validate"` and does not materialize images or start training when opened or executed. If the ZIP is unavailable, validation reports that preparation is pending rather than failing or writing partial outputs.
+**Implementation complete for the data-independent phase — archive preparation and training pending.** The notebook defaults to `STAGE = "validate"` and does not materialize images or start training when opened or executed. If the ZIP is unavailable, validation reports that preparation is pending rather than failing or writing partial outputs.
 
 ## Repository and dataset facts verified
 
@@ -110,3 +110,13 @@ Grouped development cross-validation must hold out one development collection co
 ## E2 intermediate-fusion compatibility considerations
 
 The E1 manifest retains deterministic archive member paths, recording names, recording paths, collection contexts, partitions, and annotation provenance. Materialization uses deterministic filenames and a manifest fingerprint. E1 weights may be useful as unimodal initialization, but they are not claimed to be directly compatible with an intermediate-fusion architecture until tensor shapes and feature extraction points are verified.
+
+## 2026-10-23 completion audit
+
+- Thermal labels now require class `0`, finite values, positive dimensions, normalized centers, and box edges inside image bounds. Empty labels remain valid zero-object samples.
+- Existing materialized image/label bytes are SHA-256 checked against the source ZIP before reuse; mismatches fail without overwriting evidence.
+- The audited RGB/thermal one-frame rule is documented as `thermal_frame = rgb_frame + 1` and is never applied to bounding-box coordinates. E1 remains independent of RGB counterparts.
+- Development folds assert context disjointness and exclude both frozen test contexts. `SELECTED_FOLD` and `SELECTED_CHUNK` keep execution to one explicit chunk.
+- Loadable stripped checkpoints with `epoch=-1` are accepted as weights but never treated as optimizer-resumable. Optimizer resume is enabled only when optimizer and training state are present.
+- Final training disables validation and records that its validation is not independent. Held-out evaluation requires complete final development metadata and an explicit override before replacing an existing result.
+- Static JSON/compile checks and synthetic annotation, nested-materialization, stripped-checkpoint, corruption, fallback, and missing-metadata tests passed. The thermal ZIP, real image statistics, Ultralytics API/runtime, full CV, final training, and test evaluation remain pending because no dataset ZIP is available locally.
