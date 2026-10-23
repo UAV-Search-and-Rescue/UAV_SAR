@@ -1,8 +1,8 @@
-# Thermal Baseline (E1) Implementation Log
+# Thermal Baseline (E2) Implementation Log
 
 ## Objective and experiment boundaries
 
-E1 is a thermal/IR-only person-detection baseline. It reads the frozen recording-level split and never uses RGB images as model inputs. RGB-thermal fusion (E2) is explicitly out of scope.
+E2 is a thermal/IR-only person-detection baseline. It reads the frozen recording-level split and never uses RGB images as model inputs. RGB-thermal fusion is explicitly out of scope.
 
 ## Current status
 
@@ -25,10 +25,10 @@ E1 is a thermal/IR-only person-detection baseline. It reads the frozen recording
 | 2026-10-12 | Implement preparation directly in the thermal notebook | The task requested notebook-local preparation and E0 already establishes the project convention | A reusable script would reduce duplication but would expand scope; no script was added | Verified statically |
 | 2026-10-12 | Use `IR` rows from the frozen manifest | This is the repository's actual modality convention | Guessing from folder names could select the wrong recordings | Verified from frozen CSV |
 | 2026-10-12 | Default to validation-only | Prevent opening/rerunning a notebook from consuming Drive/GPU or evaluating test data | Explicit stage changes are required for materialization and training | Verified in notebook source |
-| 2026-10-12 | Use a 10-epoch chunk and Drive-isolated E1 state | This matches the requested interruption granularity and avoids E0 collisions | Exact mid-epoch recovery remains framework-dependent; the notebook resumes at the last completed chunk | Provisional until a real Ultralytics run |
+| 2026-10-12 | Use a 10-epoch chunk and Drive-isolated E2 state | This matches the requested interruption granularity and avoids E0 collisions | Exact mid-epoch recovery remains framework-dependent; the notebook resumes at the last completed chunk | Provisional until a real Ultralytics run |
 | 2026-10-12 | Reject incompatible or incomplete checkpoint metadata | A corrupt or mismatched run must not silently restart at epoch zero | User must inspect or choose a new run identifier | Verified statically |
 | 2026-10-12 | Validate representative thermal image bytes with Pillow and preserve mode, dimensions, and extrema in the pair manifest | Thermal signal characteristics must be observed rather than inferred from RGB conventions; unreadable images must be excluded with a reason | Skipping decode validation would defer failures until training; arbitrary colorization was rejected | Implemented; real ZIP verification pending |
-| 2026-10-12 | Materialize detector-ready partition lists and `data.yaml` only under the E1 data root | Training requires an explicit detector input description while E0 artifacts must remain isolated | Reusing E0 data files would violate experiment isolation | Implemented statically |
+| 2026-10-12 | Materialize detector-ready partition lists and `data.yaml` only under the E2 data root | Training requires an explicit detector input description while E0 artifacts must remain isolated | Reusing E0 data files would violate experiment isolation | Implemented statically |
 | 2026-10-12 | Generate a separate train/validation list and YAML for the selected held-out development context | The grouped CV protocol must be enforced by the data configuration, not only documented in the function signature | A single all-development YAML would leak the validation context into training | Implemented statically |
 | 2026-10-12 | Detect deterministic filename collisions and preserve the previous checkpoint before loading a resumable latest checkpoint | A collision or replacement failure must not silently destroy recoverable progress | Relying only on archive paths or framework writes was insufficient | Implemented statically |
 | 2026-10-12 | Preserve nested archive paths and derive every image-list entry from the materialized target helper | Flattening archive names made list paths diverge from extracted files and could collide across folders | Renaming or dropping samples was rejected because it changes provenance and split membership | Implemented; synthetic nested-archive test passed |
@@ -49,20 +49,20 @@ The notebook creates `results/thermal_baseline/thermal_dataset_manifest.csv`, `t
 
 ## Training configuration
 
-- Model family: Ultralytics YOLO, initialized from `yolov8s.pt` when no compatible E1 checkpoint exists.
+- Model family: Ultralytics YOLO, initialized from `yolov8s.pt` when no compatible E2 checkpoint exists.
 - Image size: 640.
 - Batch size: 8.
 - Total epoch budget: 100.
 - Chunk size: 10 epochs.
 - Seed: 20260905.
 - Device: CUDA when available, otherwise CPU.
-- E1 persistent root: `/content/drive/MyDrive/UAV_SAR_E1/`.
+- E2 persistent root: `/content/drive/MyDrive/UAV_SAR_E2/`.
 
-These values mirror the inspected E0 intent where comparable, but the actual E1 run configuration must be recorded after the first real training execution.
+These values mirror the inspected E0 intent where comparable, but the actual E2 run configuration must be recorded after the first real training execution.
 
 ## Checkpoint/resume design and recovery behavior
 
-Run state is isolated below `UAV_SAR_E1/runs`. Metadata stores the experiment ID, fold, manifest fingerprint, split fingerprint, seed, image size, batch size, and epoch budget. Resume discovery checks metadata before loading `last.pt`; it also checks `last.previous.pt` as a fallback using a separate `previous_completed_epochs` value. Each candidate is deserialized and its saved zero-based `epoch` is converted to completed epochs by adding one. If the value differs from metadata, the metadata is atomically repaired before the checkpoint is returned. Thus an interrupted chunk resumes from the checkpoint's actual saved state, not the last completed chunk recorded before the interruption. Missing or incompatible metadata raises an error instead of starting a fresh run. Checkpoint deserialization is attempted with `torch.load`; known PyTorch/pickle failures and missing epoch state are treated as invalid, and no valid checkpoint causes a clear failure. Before a chunk, `last.pt` is copied to the backup while the active checkpoint path remains unchanged, then `model.train(..., resume=True)` is used. After successful training, metadata is written from the new checkpoint's actual saved epoch rather than the requested `epochs` target. Exact mid-epoch recovery remains dependent on the checkpoint Ultralytics has written at disconnect time; the notebook does not claim recovery of work after the latest saved checkpoint.
+Run state is isolated below `UAV_SAR_E2/runs`. Metadata stores the E2 experiment ID, fold, manifest fingerprint, split fingerprint, seed, image size, batch size, and epoch budget. Resume discovery checks metadata before loading `last.pt`; it also checks `last.previous.pt` as a fallback using a separate `previous_completed_epochs` value. Each candidate is deserialized and its saved zero-based `epoch` is converted to completed epochs by adding one. If the value differs from metadata, the metadata is atomically repaired before the checkpoint is returned. Thus an interrupted chunk resumes from the checkpoint's actual saved state, not the last completed chunk recorded before the interruption. Missing or incompatible metadata raises an error instead of starting a fresh run. Checkpoint deserialization is attempted with `torch.load`; known PyTorch/pickle failures and missing state are treated as invalid, and no valid checkpoint causes a clear failure. New chunks use separate `runs/cv/<context>/chunk_NN` directories and weight-only initialization; only compatible optimizer-backed interrupted chunks use resume. Exact mid-epoch recovery remains dependent on the checkpoint Ultralytics has written at disconnect time.
 
 ## Cross-validation progress
 
@@ -75,7 +75,7 @@ Grouped development cross-validation must hold out one development collection co
 ## Commands and cells executed
 
 - Inspected the E0 notebook, frozen split generator, frozen manifests, existing results, project instructions, and Git status.
-- Replaced the empty thermal notebook with a four-cell E1 implementation.
+- Updated the thermal notebook as an E2 implementation.
 - Generated the notebook using a temporary local builder and removed that builder afterward.
 - Training and real-data preparation cells were not executed.
 
@@ -85,7 +85,7 @@ Grouped development cross-validation must hold out one development collection co
 - Notebook cell inventory: five cells, including an explicit non-running regression smoke-test cell.
 - Python compilation: passed after the targeted path/checkpoint/test edits.
 - Validation-only preflight with the local ZIP absent: passed and reported preparation pending without training or writes.
-- Focused E1 regression smoke tests: passed for nested archive paths, generated image lists, valid latest selection, corrupt-latest fallback with the backup epoch, no-valid-checkpoint failure, and nonzero next-chunk progression after fallback.
+- Focused E2 regression smoke tests: passed for nested archive paths, generated image lists, strict annotations, valid latest selection, stripped weights, corrupt-latest fallback, no-valid-checkpoint failure, and nonzero next-chunk progression.
 - Checkpoint interruption smoke test: passed using serialized synthetic payloads with a latest checkpoint at saved epoch 14 and stale metadata at 10; recovery selected 15 completed epochs and targeted epoch 25, then corrupt-latest fallback selected the backup's actual 10 completed epochs and targeted epoch 20.
 - Missing-metadata and corrupt-checkpoint smoke tests: passed; corrupt checkpoint was rejected rather than treated as a fresh run.
 - `git diff --check`: passed.
@@ -95,7 +95,7 @@ Grouped development cross-validation must hold out one development collection co
 
 - The local dataset ZIP path and thermal image encoding have not been inspected by this implementation pass.
 - `requirements.txt` is empty, so the pinned Ultralytics environment is not declared.
-- The notebook now writes detector-ready development/test lists, fold-specific train/validation lists, and `data.yaml` under the E1 materialization root. Final evaluation/reporting cells and real Ultralytics execution remain pending.
+- The notebook now writes detector-ready development lists, fold-specific train/validation lists, and `data.yaml` under the E2 materialization root. Final evaluation/reporting cells and real Ultralytics execution remain pending.
 - The synthetic checkpoint smoke test does not prove that a real Ultralytics-generated checkpoint contains the expected optimizer/scheduler state; this requires a controlled Colab/Ultralytics run.
 - PyTorch is not installed in the local virtual environment, so the focused smoke test used a small pickle-backed serialization shim. The production notebook still uses `torch.load`; real PyTorch deserialization and Ultralytics checkpoint epoch semantics remain pending.
 - Atomic protection is implemented for metadata and materialization markers; framework-generated model checkpoint writes still depend on Ultralytics filesystem behavior.
@@ -109,14 +109,17 @@ Grouped development cross-validation must hold out one development collection co
 
 ## E2 intermediate-fusion compatibility considerations
 
-The E1 manifest retains deterministic archive member paths, recording names, recording paths, collection contexts, partitions, and annotation provenance. Materialization uses deterministic filenames and a manifest fingerprint. E1 weights may be useful as unimodal initialization, but they are not claimed to be directly compatible with an intermediate-fusion architecture until tensor shapes and feature extraction points are verified.
+The E2 manifest retains deterministic archive member paths, recording names, recording paths, collection contexts, partitions, and annotation provenance. Materialization uses deterministic filenames and a manifest fingerprint. E2 weights may be useful as unimodal initialization, but they are not claimed to be directly compatible with a later fusion architecture until tensor shapes and feature extraction points are verified.
 
 ## 2026-10-23 completion audit
 
 - Thermal labels now require class `0`, finite values, positive dimensions, normalized centers, and box edges inside image bounds. Empty labels remain valid zero-object samples.
 - Existing materialized image/label bytes are SHA-256 checked against the source ZIP before reuse; mismatches fail without overwriting evidence.
-- The audited RGB/thermal one-frame rule is documented as `thermal_frame = rgb_frame + 1` and is never applied to bounding-box coordinates. E1 remains independent of RGB counterparts.
+- The audited RGB/thermal one-frame rule is documented as `thermal_frame = rgb_frame + 1` and is never applied to bounding-box coordinates. E2 remains independent of RGB counterparts.
 - Development folds assert context disjointness and exclude both frozen test contexts. `SELECTED_FOLD` and `SELECTED_CHUNK` keep execution to one explicit chunk.
 - Loadable stripped checkpoints with `epoch=-1` are accepted as weights but never treated as optimizer-resumable. Optimizer resume is enabled only when optimizer and training state are present.
 - Final training disables validation and records that its validation is not independent. Held-out evaluation requires complete final development metadata and an explicit override before replacing an existing result.
 - Static JSON/compile checks and synthetic annotation, nested-materialization, stripped-checkpoint, corruption, fallback, and missing-metadata tests passed. The thermal ZIP, real image statistics, Ultralytics API/runtime, full CV, final training, and test evaluation remain pending because no dataset ZIP is available locally.
+- The thermal-only experiment identity is E2 and its persistent Drive root is `UAV_SAR_E2`; E0 paths and artifacts remain untouched.
+- Stage dispatch is now explicit and runs only after helper/test definitions: `validate`, `prepare_manifest`, `materialize_development`, `train_cv`, `train_final`, `evaluate_test`, and `smoke_tests`. Validation is read-only and reports the missing local ZIP/manifest prerequisite without creating artifacts.
+- Development materialization is partition-specific and merges integrity records across repeated calls; test materialization is deferred until the explicit test stage. New chunks use `runs/cv/<context>/chunk_NN` and final chunks use a separate final path. New chunks use weight initialization with `resume=False`; only compatible interrupted chunks use optimizer resume.
