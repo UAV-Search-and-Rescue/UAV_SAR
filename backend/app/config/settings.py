@@ -41,3 +41,7 @@ CONFIDENCE_THRESHOLD = float(
         "0.5"
     )
 )
+if not 0.0 <= CONFIDENCE_THRESHOLD <= 1.0:
+    raise ValueError(
+        "CONFIDENCE_THRESHOLD must be between 0.0 and 1.0."
+    )

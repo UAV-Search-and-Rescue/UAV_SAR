@@ -1,22 +1,47 @@
+
 from io import BytesIO
 
-from PIL import Image
+from fastapi import UploadFile
+from PIL import Image, UnidentifiedImageError
 
 from app.detectors.base import Detector
+
+
+MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024  # 5 MB
+
+
+async def validate_image(
+    upload: UploadFile,
+    modality: str,
+) -> None:
+    """Validate uploaded image size and content."""
+    image_bytes = await upload.read(MAX_IMAGE_SIZE_BYTES + 1)
+
+    if not image_bytes:
+        raise ValueError(f"{modality} image is empty")
+
+    if len(image_bytes) > MAX_IMAGE_SIZE_BYTES:
+        raise ValueError(
+            f"{modality} image exceeds the 5 MB size limit"
+        )
+
+    try:
+        with Image.open(BytesIO(image_bytes)) as image:
+            image.verify()
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise ValueError(f"Invalid {modality} image") from exc
+
+    # Reset the file so downstream code can read it if needed.
+    await upload.seek(0)
 
 
 class E0Detector(Detector):
 
     async def predict(self, rgb, thermal=None):
-        image_bytes = await rgb.read()
+        await validate_image(rgb, "RGB")
 
-        if not image_bytes:
-            raise ValueError("RGB image is empty")
+        if thermal is not None:
+            await validate_image(thermal, "Thermal")
 
-        try:
-            image = Image.open(BytesIO(image_bytes))
-            image.load()
-        except Exception as exc:
-            raise ValueError("Invalid RGB image") from exc
-
+        # Model inference remains unimplemented.
         return []

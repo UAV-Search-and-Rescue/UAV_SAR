@@ -1,8 +1,10 @@
+
+from pymongo.errors import DuplicateKeyError
+
 from app.storage.mongodb import db
 
 
 class MongoDBResultStore:
-
     def __init__(self):
         self.collection = db["detection_results"]
 
@@ -12,8 +14,7 @@ class MongoDBResultStore:
         return result
 
     def get(self, request_id: str):
-        document = self.collection.find_one(
+        return self.collection.find_one(
             {"request_id": request_id},
-            {"_id": 0}
+            {"_id": 0},
         )
-        return document
