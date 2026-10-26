@@ -30,7 +30,6 @@ import {
   formatDegrees,
   locatedTargets,
   locationById,
-  pinKind,
   type LocatedTarget,
 } from "../data/locations";
 import { cn } from "../lib/cn";
@@ -49,18 +48,6 @@ function formatStamp(target: LocatedTarget) {
   const date = new Date(`${target.date}T12:00:00`);
   const day = date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
   return `${day}, ${target.time}`;
-}
-
-function confidenceClass(value: number) {
-  if (value >= 0.85) return "bg-rose-100 text-rose-600";
-  if (value >= 0.75) return "bg-orange-100 text-orange-600";
-  return "bg-amber-100 text-amber-700";
-}
-
-function confidenceLabel(value: number) {
-  if (value >= 0.85) return "High Confidence";
-  if (value >= 0.75) return "Medium Confidence";
-  return "Low Confidence";
 }
 
 function downloadTarget(target: LocatedTarget) {
@@ -91,7 +78,6 @@ export function LocalizationPage() {
   const [chartTab, setChartTab] = useState<"path" | "elevation">("elevation");
   const [hoverKm, setHoverKm] = useState(1.2);
   const [tableQuery, setTableQuery] = useState("");
-  const [band, setBand] = useState("all");
   const [page, setPage] = useState(1);
 
   const selected = locationId ? locationById(locationId) : locatedTargets[0];
@@ -105,10 +91,6 @@ export function LocalizationPage() {
     const header = query.trim().toLowerCase();
     const local = tableQuery.trim().toLowerCase();
     return inRange.filter((item) => {
-      const kind = pinKind(item.confidence);
-      if (band === "high" && kind !== "high") return false;
-      if (band === "medium" && kind !== "medium") return false;
-      if (band === "low" && kind !== "low") return false;
       const haystack = [item.id, item.latitude, item.longitude, item.locationType, item.time, item.model]
         .join(" ")
         .toLowerCase();
@@ -116,7 +98,7 @@ export function LocalizationPage() {
       if (local && !haystack.includes(local)) return false;
       return true;
     });
-  }, [inRange, query, tableQuery, band]);
+  }, [inRange, query, tableQuery]);
 
   useEffect(() => {
     if (!locationId) return;
@@ -285,10 +267,7 @@ export function LocalizationPage() {
 
             {legendOpen && (
               <div className="absolute left-3 top-3 w-44 rounded-xl bg-slate-950/80 p-3 text-[11px] text-slate-100 shadow-lg">
-                <LegendRow swatch={<span className="h-2.5 w-2.5 rounded-full bg-red-500" />} label="Detected Person" />
-                <LegendRow swatch={<span className="h-2.5 w-2.5 rounded-full bg-red-500" />} label="High Confidence" />
-                <LegendRow swatch={<span className="h-2.5 w-2.5 rounded-full bg-orange-400" />} label="Medium Confidence" />
-                <LegendRow swatch={<span className="h-2.5 w-2.5 rounded-full bg-amber-300" />} label="Low Confidence" />
+                <LegendRow swatch={<span className="h-2.5 w-2.5 rounded-full bg-blue-600" />} label="Detected location" />
                 <LegendRow swatch={<UavMark className="h-3.5 w-3.5 text-sky-300" />} label="UAV Position" />
                 <LegendRow swatch={<span className="h-0 w-4 border-t border-dashed border-sky-300" />} label="Search Route" />
                 <LegendRow swatch={<span className="h-2.5 w-3 rounded-sm border border-sky-300" />} label="Search Area" />
@@ -354,23 +333,16 @@ export function LocalizationPage() {
                   people={[{ x: 50, y: 48 }]}
                   className="h-full w-full"
                 />
-                <span className="absolute left-[38%] top-[22%] h-[48%] w-[24%] border-2 border-red-500">
-                  <span className="absolute -top-4 left-0 whitespace-nowrap bg-red-500 px-1 text-[9px] font-semibold text-white">
-                    person {selected.confidence.toFixed(2)}
-                  </span>
-                </span>
+                <span className="absolute left-[38%] top-[22%] h-[48%] w-[24%] border-2 border-blue-500" />
               </div>
               <div className="min-w-0 text-sm">
-                <div className={cn("text-xs font-semibold", selected.confidence >= 0.85 ? "text-rose-500" : "text-orange-500")}>
-                  {confidenceLabel(selected.confidence)}
-                </div>
-                <div className="mt-1 font-semibold text-slate-800 dark:text-slate-100">#{selected.id}</div>
+                <div className="font-semibold text-slate-800 dark:text-slate-100">#{selected.id}</div>
                 <div className="text-xs text-slate-400">{formatStamp(selected)}</div>
                 <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
                   <UavMark className="h-3.5 w-3.5 text-blue-500" />
                   {selected.model}
                 </div>
-                <div className="text-xs text-slate-500">Confidence: {selected.confidence.toFixed(2)}</div>
+                <div className="text-xs text-slate-500">{selected.locationType}</div>
               </div>
             </div>
 
@@ -416,18 +388,13 @@ export function LocalizationPage() {
               {detailTab === "image" && (
                 <div className="relative overflow-hidden rounded-xl bg-slate-900">
                   <AerialScene mode="rgb" seed={selected.seed} people={[{ x: 50, y: 46 }]} className="aspect-[16/10] w-full" />
-                  <span className="absolute left-[42%] top-[28%] h-[36%] w-[16%] border-2 border-red-500">
-                    <span className="absolute -top-5 left-0 whitespace-nowrap bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                      person {selected.confidence.toFixed(2)}
-                    </span>
-                  </span>
+                  <span className="absolute left-[42%] top-[28%] h-[36%] w-[16%] border-2 border-blue-500" />
                 </div>
               )}
               {detailTab === "metadata" && (
                 <dl className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
                   <Meta label="Detection ID" value={selected.id} />
                   <Meta label="Model" value={selected.model} />
-                  <Meta label="Confidence" value={selected.confidence.toFixed(2)} />
                   <Meta label="Captured" value={formatStamp(selected)} />
                   <Meta label="GPS" value={selected.gps ? "Estimate available" : "No GPS estimate"} />
                   <Meta label="Altitude" value={`${selected.altitudeM} m`} />
@@ -481,26 +448,12 @@ export function LocalizationPage() {
                 className="h-9 w-full rounded-xl border border-[#e6edf5] bg-[#f8fafc] pl-3 pr-3 text-sm outline-none dark:border-slate-700 dark:bg-slate-800"
               />
             </label>
-            <select
-              aria-label="Detection filter"
-              value={band}
-              onChange={(event) => {
-                setBand(event.target.value);
-                setPage(1);
-              }}
-              className="h-9 rounded-xl border border-[#e6edf5] bg-white px-2 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900"
-            >
-              <option value="all">All Detections</option>
-              <option value="high">High Confidence</option>
-              <option value="medium">Medium Confidence</option>
-              <option value="low">Low Confidence</option>
-            </select>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead className="text-xs text-slate-400">
                 <tr className="border-y border-[#eef3f8] dark:border-slate-800">
-                  {["#", "Thumbnail", "ID", "Latitude", "Longitude", "Confidence", "Distance (m)", "Time", "Actions"].map((heading) => (
+                  {["#", "Thumbnail", "ID", "Latitude", "Longitude", "Distance (m)", "Time", "Actions"].map((heading) => (
                     <th key={heading} className="px-3 py-2 font-medium">
                       {heading}
                     </th>
@@ -525,11 +478,6 @@ export function LocalizationPage() {
                       <td className="px-3 py-2 font-medium text-slate-700 dark:text-slate-100">{item.id}</td>
                       <td className="px-3 py-2 text-slate-500">{item.latitude.toFixed(4)}</td>
                       <td className="px-3 py-2 text-slate-500">{item.longitude.toFixed(4)}</td>
-                      <td className="px-3 py-2">
-                        <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", confidenceClass(item.confidence))}>
-                          {item.confidence.toFixed(2)}
-                        </span>
-                      </td>
                       <td className="px-3 py-2 text-slate-500">{item.distanceM}</td>
                       <td className="px-3 py-2 text-slate-500">{item.time}</td>
                       <td className="px-3 py-2">
@@ -565,14 +513,13 @@ export function LocalizationPage() {
                 })}
                 {visible.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-400">
+                    <td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-400">
                       No locations in this view.
                       <button
                         type="button"
                         onClick={() => {
                           setQuery("");
                           setTableQuery("");
-                          setBand("all");
                           setPage(1);
                         }}
                         className="ml-2 font-medium text-blue-600"
@@ -739,7 +686,6 @@ function LegendRow({ swatch, label }: { swatch: ReactNode; label: string }) {
 }
 
 function MapMarker({ target, active, onClick }: { target: LocatedTarget; active: boolean; onClick: () => void }) {
-  const kind = pinKind(target.confidence);
   const place = target.map!;
   return (
     <button
@@ -747,23 +693,19 @@ function MapMarker({ target, active, onClick }: { target: LocatedTarget; active:
       onClick={onClick}
       className="absolute -translate-x-1/2 -translate-y-full"
       style={{ left: `${place.x}%`, top: `${place.y}%` }}
-      aria-label={`${target.id} ${target.confidence.toFixed(2)}`}
+      aria-label={`${target.id}, ${formatDegrees(target.latitude, "N")}, ${formatDegrees(target.longitude, "E")}`}
     >
-      {kind === "low" ? (
-        <span className={cn("block h-4 w-4 rounded-full bg-amber-300 ring-4 ring-amber-200/70", active && "ring-white")} />
-      ) : (
-        <span className="relative block">
-          {place.label && (
-            <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] font-bold text-white drop-shadow">
-              {place.label}
-            </span>
-          )}
-          <svg viewBox="0 0 24 32" className={cn("h-7 w-5 drop-shadow", active && "scale-110")}>
-            <path d="M12 0c6 0 10 4.4 10 10.2C22 18 12 32 12 32S2 18 2 10.2C2 4.4 6 0 12 0z" fill={kind === "high" ? "#ef4444" : "#f59e0b"} />
-            <circle cx="12" cy="10" r="3.2" fill="white" />
-          </svg>
-        </span>
-      )}
+      <span className="relative block">
+        {place.label && (
+          <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] font-bold text-white drop-shadow">
+            {place.label}
+          </span>
+        )}
+        <svg viewBox="0 0 24 32" className={cn("h-7 w-5 drop-shadow", active && "scale-110")}>
+          <path d="M12 0c6 0 10 4.4 10 10.2C22 18 12 32 12 32S2 18 2 10.2C2 4.4 6 0 12 0z" fill="#2563eb" />
+          <circle cx="12" cy="10" r="3.2" fill="white" />
+        </svg>
+      </span>
     </button>
   );
 }

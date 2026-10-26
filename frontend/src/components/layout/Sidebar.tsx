@@ -1,6 +1,7 @@
 import {
   Bell,
   ClipboardList,
+  Grid3x3,
   Home,
   LogOut,
   MapPinned,
@@ -20,6 +21,7 @@ const items = [
   { to: "/results", label: "Results", icon: ClipboardList },
   { to: "/alerts", label: "Alerts", icon: Bell },
   { to: "/localization", label: "Localization", icon: MapPinned },
+  { to: "/tactical", label: "Tactical map", icon: Grid3x3 },
   { to: "/system", label: "System", icon: Settings },
 ];
 

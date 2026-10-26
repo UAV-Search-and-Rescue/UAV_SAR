@@ -6,6 +6,7 @@ import { DetectionPage } from "./pages/DetectionPage";
 import { LocalizationPage } from "./pages/LocalizationPage";
 import { ResultsPage } from "./pages/ResultsPage";
 import { SystemPage } from "./pages/SystemPage";
+import { TacticalMapPage } from "./pages/TacticalMapPage";
 
 export function App() {
   return (
@@ -17,6 +18,7 @@ export function App() {
         <Route path="/results/:resultId" element={<ResultsPage />} />
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/alerts/:alertId" element={<AlertsPage />} />
+        <Route path="/tactical" element={<TacticalMapPage />} />
         <Route path="/localization" element={<LocalizationPage />} />
         <Route path="/localization/:locationId" element={<LocalizationPage />} />
         <Route path="/models" element={<Navigate to="/system" replace />} />
