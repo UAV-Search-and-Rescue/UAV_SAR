@@ -12,7 +12,7 @@ export function Panel({
   return (
     <section
       className={cn(
-        "rounded-2xl border border-[#e6edf5] bg-white shadow-[0_8px_24px_rgb(15_23_42/0.04)] dark:border-slate-800 dark:bg-slate-900",
+        "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-[0_1px_2px_rgb(16_24_40/0.04)]",
         className,
       )}
     >

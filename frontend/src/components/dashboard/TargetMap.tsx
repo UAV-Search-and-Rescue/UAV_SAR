@@ -1,138 +1,75 @@
-import { Compass, MapPin, Minus, Plus } from "lucide-react";
-import { useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
-import { useUi } from "../../context/UiContext";
-import { UavMark } from "../icons";
-import { CardHeader, Panel, ViewAllButton } from "../ui";
-import { AerialScene } from "./AerialScene";
+import { MapPin } from "lucide-react";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { Link } from "react-router-dom";
+import "leaflet/dist/leaflet.css";
+import { CardHeader, Panel } from "../ui";
 
-const markers = [
-  { id: "T2", kind: "alert" as const, left: "58%", top: "18%" },
-  { id: "T1", kind: "alert" as const, left: "63%", top: "42%" },
-  { id: "T3", kind: "alert" as const, left: "78%", top: "64%" },
-];
-
-export function TargetMap() {
-  const { setQuery } = useUi();
-  const navigate = useNavigate();
-  const [zoom, setZoom] = useState(1);
+function MapZoomControls() {
+  const map = useMap();
+  const buttonClass =
+    "h-9 w-9 text-lg font-medium text-[var(--color-text)] hover:bg-[var(--color-background)] focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-primary)]";
 
   return (
-    <Panel className="flex h-full flex-col">
-      <CardHeader icon={<MapPin className="h-4 w-4 text-blue-500" />} title="Target Locations">
-        <ViewAllButton
-          onClick={() => {
-            setQuery("");
-            navigate("/localization");
-          }}
-        />
-      </CardHeader>
-      <div className="relative mx-4 mb-4 min-h-[280px] flex-1 overflow-hidden rounded-xl bg-[#16351f]">
-        <div
-          className="absolute inset-0 origin-center transition-transform"
-          style={{ transform: `scale(${zoom})` }}
-        >
-          <AerialScene mode="map" seed={15} className="h-full w-full" />
-          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path
-              d="M30 58 C 40 54, 46 46, 52 42 S 60 30, 58 20"
-              fill="none"
-              stroke="#3b82f6"
-              strokeWidth="0.9"
-              strokeDasharray="2.2 1.5"
-              strokeLinecap="round"
-            />
-          </svg>
-          <div className="absolute left-[30%] top-[52%] -translate-x-1/2 -translate-y-1/2 text-blue-500 drop-shadow">
-            <UavMark className="h-7 w-7" />
-          </div>
-          <div className="absolute left-[52%] top-[48%] -translate-x-1/2 -translate-y-full">
-            <svg viewBox="0 0 24 32" className="h-8 w-6 drop-shadow" aria-label="Detected person">
-              <path d="M12 0c6 0 10 4.4 10 10.2C22 18 12 32 12 32S2 18 2 10.2C2 4.4 6 0 12 0z" fill="#ef4444" />
-              <circle cx="12" cy="10" r="3.4" fill="white" />
-            </svg>
-          </div>
-          {markers.map((marker) => (
-            <div
-              key={marker.id}
-              className="absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ left: marker.left, top: marker.top }}
-            >
-              <div className="grid h-7 w-7 place-items-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow ring-2 ring-white">
-                {marker.id}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="absolute right-3 top-3 w-[148px] rounded-xl bg-white/95 p-2.5 text-[11px] text-slate-600 shadow-md">
-          <LegendRow swatch={<span className="h-2.5 w-2.5 rounded-full bg-red-500" />} label="Detected Person" />
-          <LegendRow swatch={<span className="h-2.5 w-2.5 rounded-full bg-orange-500" />} label="Alert (Unverified)" />
-          <LegendRow swatch={<UavMark className="h-3.5 w-3.5 text-blue-500" />} label="Drone Position" />
-          <LegendRow
-            swatch={<span className="h-0 w-4 border-t-2 border-dashed border-blue-500" />}
-            label="Search Route"
-          />
-        </div>
-
-        <div className="absolute bottom-16 right-3 flex flex-col gap-1.5">
-          <MapButton label="Zoom in" onClick={() => setZoom((value) => Math.min(1.8, Number((value + 0.2).toFixed(2))))}>
-            <Plus className="h-4 w-4" />
-          </MapButton>
-          <MapButton label="Zoom out" onClick={() => setZoom((value) => Math.max(1, Number((value - 0.2).toFixed(2))))}>
-            <Minus className="h-4 w-4" />
-          </MapButton>
-          <MapButton label="Reset map" onClick={() => setZoom(1)}>
-            <Compass className="h-4 w-4" />
-          </MapButton>
-        </div>
-
-        <div className="absolute bottom-3 right-3 rounded-md bg-white/95 px-2 py-1 shadow">
-          <div className="flex items-end text-[10px] font-medium text-slate-600">
-            <div>
-              <div className="h-2 w-10 border border-slate-800 bg-white" />
-              <div className="mt-0.5 flex justify-between">
-                <span>0</span>
-                <span>250</span>
-              </div>
-            </div>
-            <div>
-              <div className="h-2 w-10 border border-slate-800 bg-slate-800" />
-              <div className="mt-0.5 text-right">500 m</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
-function LegendRow({ swatch, label }: { swatch: ReactNode; label: string }) {
-  return (
-    <div className="flex items-center gap-2 py-0.5">
-      <span className="grid w-4 place-items-center">{swatch}</span>
-      <span>{label}</span>
+    <div
+      aria-label="Map zoom controls"
+      className="absolute right-3 top-3 z-[1101] flex flex-col overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-surface-elevated)] shadow-sm"
+    >
+      <button
+        type="button"
+        aria-label="Zoom in"
+        className={`${buttonClass} border-b border-[var(--color-border)]`}
+        onClick={() => map.zoomIn()}
+      >
+        +
+      </button>
+      <button type="button" aria-label="Zoom out" className={buttonClass} onClick={() => map.zoomOut()}>
+        −
+      </button>
     </div>
   );
 }
 
-function MapButton({
-  children,
-  label,
-  onClick,
-}: {
-  children: ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
+export function TargetMap() {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="grid h-8 w-8 place-items-center rounded-md bg-white text-slate-600 shadow hover:text-slate-900"
-    >
-      {children}
-    </button>
+    <Panel className="flex min-h-[400px] flex-col overflow-hidden">
+      <CardHeader icon={<MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400" />} title="Target map">
+        <span className="text-xs text-[var(--color-text-muted)]">OpenStreetMap · street layer</span>
+      </CardHeader>
+      <div
+        role="region"
+        aria-label="Interactive OpenStreetMap"
+        className="relative mx-3 mb-3 min-h-[340px] flex-1 overflow-hidden rounded-lg border border-[var(--color-border)]"
+      >
+        <MapContainer
+          center={[20, 15]}
+          zoom={3}
+          minZoom={2}
+          maxZoom={19}
+          scrollWheelZoom={false}
+          zoomControl={false}
+          className="h-full min-h-[340px] w-full"
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maxZoom={19}
+          />
+          <MapZoomControls />
+        </MapContainer>
+        <div
+          role="status"
+          aria-label="Map status"
+          className="pointer-events-none absolute left-3 top-3 z-[1100] max-w-[calc(100%_-_4.5rem)] rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/95 px-3 py-2 shadow-sm"
+        >
+          <p className="text-sm font-semibold text-[var(--color-text)]">No geographic coordinates available.</p>
+          <Link
+            to="/localization"
+            className="pointer-events-auto mt-1 inline-block text-xs font-medium text-blue-700 underline underline-offset-2 dark:text-blue-300"
+          >
+            Open localization
+          </Link>
+        </div>
+      </div>
+    </Panel>
   );
 }

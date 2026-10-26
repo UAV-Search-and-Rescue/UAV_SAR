@@ -2,7 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
+  useLayoutEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -17,10 +17,6 @@ type UiContextValue = {
   setSidebarOpen: (open: boolean) => void;
   query: string;
   setQuery: (query: string) => void;
-  noticesOpen: boolean;
-  setNoticesOpen: (open: boolean) => void;
-  noticesRead: boolean;
-  markNoticesRead: () => void;
   signedOut: boolean;
   setSignedOut: (signedOut: boolean) => void;
   logoutOpen: boolean;
@@ -33,12 +29,19 @@ type UiContextValue = {
 const UiContext = createContext<UiContextValue | null>(null);
 const THEME_KEY = "uav-sar-dashboard-theme";
 
+function getInitialTheme() {
+  if (typeof window === "undefined") return false;
+
+  const saved = window.localStorage.getItem(THEME_KEY);
+  if (saved === "dark") return true;
+  if (saved === "light") return false;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
 export function UiProvider({ children }: { children: ReactNode }) {
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(getInitialTheme);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [noticesOpen, setNoticesOpen] = useState(false);
-  const [noticesRead, setNoticesRead] = useState(false);
   const [signedOut, setSignedOut] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -56,14 +59,12 @@ export function UiProvider({ children }: { children: ReactNode }) {
     [dismissToast],
   );
 
-  useEffect(() => {
-    const stored = localStorage.getItem(THEME_KEY);
-    if (stored === "dark") setDark(true);
-  }, []);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const theme = dark ? "dark" : "light";
     document.documentElement.classList.toggle("dark", dark);
-    localStorage.setItem(THEME_KEY, dark ? "dark" : "light");
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    window.localStorage.setItem(THEME_KEY, theme);
   }, [dark]);
 
   const value = useMemo<UiContextValue>(
@@ -74,14 +75,6 @@ export function UiProvider({ children }: { children: ReactNode }) {
       setSidebarOpen,
       query,
       setQuery,
-      noticesOpen,
-      setNoticesOpen,
-      noticesRead,
-      markNoticesRead: () => {
-        setNoticesRead(true);
-        setNoticesOpen(false);
-        pushToast("Alerts marked as read");
-      },
       signedOut,
       setSignedOut,
       logoutOpen,
@@ -90,7 +83,7 @@ export function UiProvider({ children }: { children: ReactNode }) {
       pushToast,
       dismissToast,
     }),
-    [dark, dismissToast, logoutOpen, noticesOpen, noticesRead, pushToast, query, sidebarOpen, signedOut, toasts],
+    [dark, dismissToast, logoutOpen, pushToast, query, sidebarOpen, signedOut, toasts],
   );
 
   return <UiContext.Provider value={value}>{children}</UiContext.Provider>;

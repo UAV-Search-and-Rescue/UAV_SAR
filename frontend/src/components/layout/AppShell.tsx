@@ -10,7 +10,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     useUi();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f3f6fb] font-sans text-slate-900 antialiased dark:bg-[#0b1220] dark:text-slate-100">
+    <div className="flex h-screen overflow-hidden bg-[var(--color-background)] font-sans text-[var(--color-text)] antialiased">
       {signedOut ? (
         <LoginScreen
           onSignIn={() => {

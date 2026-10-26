@@ -1,11 +1,14 @@
-import { Bell, ChevronDown, Database, Menu, Moon, Search, Sun, User } from "lucide-react";
+import { Bell, ChevronDown, Menu, Moon, Search, Sun, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { alerts, operator, recentDetections } from "../../data/mission";
 import { missionResults } from "../../data/results";
 import { locatedTargets } from "../../data/locations";
 import { useUi } from "../../context/UiContext";
+import { getApiBaseUrl, getApiHealth } from "../../lib/api";
 import { cn } from "../../lib/cn";
+
+type ApiState = "checking" | "online" | "degraded" | "offline" | "unconfigured";
 
 export function TopBar() {
   const {
@@ -13,17 +16,15 @@ export function TopBar() {
     toggleDark,
     query,
     setQuery,
-    noticesOpen,
-    setNoticesOpen,
-    noticesRead,
-    markNoticesRead,
     setSidebarOpen,
     setLogoutOpen,
   } = useUi();
-  const noticeRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
   const [userOpen, setUserOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [apiState, setApiState] = useState<ApiState>(
+    getApiBaseUrl() ? "checking" : "unconfigured",
+  );
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const onSystem = pathname.startsWith("/system");
@@ -57,20 +58,32 @@ export function TopBar() {
           : "Search detections, locations...";
 
   useEffect(() => {
-    if (!noticesOpen) return;
-    const onPointer = (event: MouseEvent) => {
-      if (!noticeRef.current?.contains(event.target as Node)) setNoticesOpen(false);
+    if (!getApiBaseUrl()) {
+      setApiState("unconfigured");
+      return;
+    }
+
+    let active = true;
+    const checkHealth = async () => {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 5000);
+      try {
+        const health = await getApiHealth(controller.signal);
+        if (active) setApiState(health.status === "degraded" ? "degraded" : "online");
+      } catch {
+        if (active) setApiState("offline");
+      } finally {
+        window.clearTimeout(timeout);
+      }
     };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setNoticesOpen(false);
-    };
-    window.addEventListener("mousedown", onPointer);
-    window.addEventListener("keydown", onKey);
+
+    void checkHealth();
+    const interval = window.setInterval(() => void checkHealth(), 15000);
     return () => {
-      window.removeEventListener("mousedown", onPointer);
-      window.removeEventListener("keydown", onKey);
+      active = false;
+      window.clearInterval(interval);
     };
-  }, [noticesOpen, setNoticesOpen]);
+  }, []);
 
   useEffect(() => {
     if (!userOpen) return;
@@ -89,7 +102,7 @@ export function TopBar() {
   }, [userOpen]);
 
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-3 bg-[#f3f6fb]/95 px-4 py-4 backdrop-blur dark:bg-[#0b1220]/95 sm:px-5">
+    <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[var(--color-border)] bg-[var(--color-background)]/95 px-4 py-3 backdrop-blur sm:px-5">
       <button
         type="button"
         className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 lg:hidden dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
@@ -102,6 +115,7 @@ export function TopBar() {
       <label className={cn("relative min-w-0 flex-1", onSystem && "hidden")}>
         <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
+          aria-label="Search sample records"
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -157,90 +171,49 @@ export function TopBar() {
             aria-checked={dark}
             aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
             onClick={toggleDark}
-            className={cn(
-              "relative h-5 w-9 rounded-full transition-colors",
-              dark ? "bg-blue-600" : "bg-slate-200",
-            )}
+            className="grid h-11 w-11 place-items-center rounded-full"
           >
-            <span
-              className={cn(
-                "absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all",
-                dark ? "left-[18px]" : "left-0.5",
-              )}
-            />
+            <span className={cn("relative block h-5 w-9 rounded-full transition-colors", dark ? "bg-blue-600" : "bg-slate-300")}>
+              <span className={cn("absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all", dark ? "left-[18px]" : "left-0.5")} />
+            </span>
           </button>
         </div>
 
-        {onSystem ? (
-          <div className="hidden items-center gap-1.5 text-xs font-medium text-emerald-500 sm:flex">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            All Systems Operational
-          </div>
-        ) : (
-          <>
-            <div className="hidden items-center gap-1.5 text-xs font-medium text-emerald-500 xl:flex">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Backend Connected
-            </div>
-            <div className="hidden items-center gap-1.5 text-xs font-medium text-emerald-500 xl:flex">
-              <Database className="h-3.5 w-3.5" />
-              MongoDB Atlas
-            </div>
-          </>
-        )}
-
-        {!onSystem && (
-          <div className="relative" ref={noticeRef}>
-            <button
-              type="button"
-              aria-label={noticesRead ? "Alerts" : "Alerts, 3 unread"}
-              onClick={() => setNoticesOpen(!noticesOpen)}
-              className="relative grid h-10 w-10 place-items-center rounded-full text-slate-500 hover:bg-white dark:hover:bg-slate-900"
-            >
-              <Bell className="h-[18px] w-[18px]" />
-              <span className={cn("absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white", noticesRead && "hidden")}>
-                3
-              </span>
-            </button>
-            {noticesOpen && (
-              <div className="absolute right-0 top-12 w-72 rounded-2xl border border-[#e6edf5] bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-              <div className="flex items-center justify-between px-2 py-1.5">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Active alerts</span>
-                <button type="button" onClick={markNoticesRead} className="text-xs font-medium text-blue-600">
-                  Mark all as read
-                </button>
-              </div>
-                {alerts.map((alert) => (
-                  <button
-                    key={alert.id}
-                    type="button"
-                    onClick={() => {
-                      setNoticesOpen(false);
-                      navigate(`/alerts/${alert.id}`);
-                    }}
-                    className="flex w-full items-start gap-2 rounded-xl px-2 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800"
-                  >
-                    <span
-                      className={cn(
-                        "mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-bold text-white",
-                        alert.severity === "HIGH" ? "bg-red-500" : "bg-amber-400",
-                      )}
-                    >
-                      {alert.severity}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">
-                        Person Detected
-                      </span>
-                      <span className="block truncate text-xs text-slate-400">
-                        {alert.confidence} · {alert.location}
-                      </span>
-                    </span>
-                  </button>
-                ))}
-              </div>
+        <div
+          role="status"
+          aria-label={`Backend status: ${apiState}`}
+          title={`Backend status: ${apiState}`}
+          className="hidden items-center gap-2 text-xs font-medium text-[var(--color-text-muted)] sm:flex"
+        >
+          <span
+            className={cn(
+              "h-2 w-2 rounded-full",
+              apiState === "online" && "bg-emerald-500",
+              apiState === "degraded" && "bg-amber-500",
+              apiState === "offline" && "bg-red-500",
+              (apiState === "checking" || apiState === "unconfigured") && "bg-slate-400",
             )}
-          </div>
+          />
+          <span className="hidden md:inline">
+            {apiState === "online" && "API available"}
+            {apiState === "degraded" && "API degraded"}
+            {apiState === "offline" && "API offline"}
+            {apiState === "checking" && "Checking API"}
+            {apiState === "unconfigured" && "API not configured"}
+          </span>
+        </div>
+        {!onSystem && (
+          <button
+            type="button"
+            aria-label="Open alerts"
+            onClick={() => {
+              setQuery("");
+              navigate("/alerts");
+            }}
+            className="grid h-10 w-10 place-items-center rounded-full text-slate-500 hover:bg-white dark:hover:bg-slate-900"
+          >
+            <Bell className="h-[18px] w-[18px]" />
+          </button>
         )}
 
         {onSystem ? (

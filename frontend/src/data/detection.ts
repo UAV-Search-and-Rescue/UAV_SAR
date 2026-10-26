@@ -17,7 +17,7 @@ export type ModelOption = {
 
 export const detectionModels: ModelOption[] = [
   { id: "e0", label: "E0 - YOLO (RGB)", status: "Available" },
-  { id: "e1", label: "E1 - YOLO (IR)", status: "Available" },
+  { id: "e1", label: "E1 - Unverified", status: "Available" },
   { id: "e2", label: "E2 - Fusion", status: "Planned" },
 ];
 

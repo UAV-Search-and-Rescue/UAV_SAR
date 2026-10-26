@@ -1,36 +1,8 @@
 import { useState, type ReactNode } from "react";
-import { Brain, ClipboardList, Database, Folder, RefreshCw, Save, Server, Settings } from "lucide-react";
+import { Brain, ClipboardList, Database, Folder, Save, Server, Settings } from "lucide-react";
 import { useSystemSettings, type SystemSettings } from "../context/SystemSettings";
 import { useUi } from "../context/UiContext";
 import { imageSizes } from "../data/detection";
-import { cn } from "../lib/cn";
-
-type LogLevel = "INFO" | "WARN";
-
-type ActivityLog = {
-  time: string;
-  level: LogLevel;
-  service: string;
-  message: string;
-};
-
-const checkedAt = "16 Oct 2026, 03:24 PM";
-
-const baseLogs: ActivityLog[] = [
-  { time: "16 Oct 2026, 03:24 PM", level: "INFO", service: "api", message: "Health check successful" },
-  { time: "16 Oct 2026, 03:23 PM", level: "INFO", service: "model", message: "Model loaded: YOLO E0" },
-  { time: "16 Oct 2026, 03:22 PM", level: "INFO", service: "database", message: "Connected to MongoDB Atlas" },
-  { time: "16 Oct 2026, 03:20 PM", level: "INFO", service: "detection", message: "Detection request completed (2 detections)" },
-  { time: "16 Oct 2026, 03:18 PM", level: "WARN", service: "storage", message: "Disk usage above 70% (7.2 GB / 10 GB)" },
-];
-
-const olderLogs: ActivityLog[] = [
-  { time: "16 Oct 2026, 03:10 PM", level: "INFO", service: "api", message: "Service status refreshed" },
-  { time: "16 Oct 2026, 02:58 PM", level: "INFO", service: "detection", message: "Detection request completed (3 detections)" },
-  { time: "16 Oct 2026, 02:41 PM", level: "INFO", service: "storage", message: "Storage check completed" },
-  { time: "16 Oct 2026, 02:16 PM", level: "INFO", service: "model", message: "Model loaded: YOLO E0" },
-  { time: "16 Oct 2026, 01:52 PM", level: "INFO", service: "database", message: "Connected to MongoDB Atlas" },
-];
 
 const modelChoices = [
   { id: "e0" as const, label: "YOLO E0 (RGB)" },
@@ -38,43 +10,22 @@ const modelChoices = [
 ];
 
 const services = [
-  { title: "Backend API", status: "Online", detail: "FastAPI · v1.0.0", icon: Server },
-  { title: "Database", status: "Connected", detail: "MongoDB Atlas", icon: Database },
-  { title: "Model Service", status: "Ready", detail: "YOLO E0 (RGB)", icon: Brain },
-  { title: "File Storage", status: "Available", detail: "1.8 GB / 10 GB", icon: Folder },
+  { title: "Backend API", status: "Unknown", detail: "No health endpoint configured", icon: Server },
+  { title: "Database", status: "Unknown", detail: "No connection status available", icon: Database },
+  { title: "Model Service", status: "Unknown", detail: "No runtime status available", icon: Brain },
+  { title: "File Storage", status: "Unknown", detail: "No storage status available", icon: Folder },
 ];
 
 export function SystemPage() {
   const { settings, saveSettings } = useSystemSettings();
   const { pushToast } = useUi();
   const [draft, setDraft] = useState<SystemSettings>(settings);
-  const [logs, setLogs] = useState(baseLogs);
-  const [showAll, setShowAll] = useState(false);
-  const [checking, setChecking] = useState(false);
   const [saved, setSaved] = useState(false);
-
-  const modelLabel = modelChoices.find((item) => item.id === settings.modelId)?.label ?? "YOLO E0 (RGB)";
-  const visibleLogs = showAll ? [...logs, ...olderLogs] : logs;
-
-  function refresh() {
-    setChecking(true);
-    window.setTimeout(() => {
-      setChecking(false);
-      setLogs((current) => {
-        if (current[0]?.message === "Health check successful") return current;
-        return [{ time: checkedAt, level: "INFO", service: "api", message: "Health check successful" }, ...current];
-      });
-    }, 500);
-  }
 
   function save() {
     saveSettings(draft);
     setSaved(true);
     pushToast("Configuration saved");
-    setLogs((current) => [
-      { time: checkedAt, level: "INFO", service: "system", message: "Configuration saved" },
-      ...current.filter((item) => item.message !== "Configuration saved"),
-    ]);
     window.setTimeout(() => setSaved(false), 1600);
   }
 
@@ -82,45 +33,34 @@ export function SystemPage() {
     <div className="space-y-4 px-4 pb-6 sm:px-5">
       <div>
         <h1 className="text-[26px] font-semibold tracking-tight text-slate-800 dark:text-slate-50">System</h1>
-        <p className="text-sm text-slate-400">Manage system status and configuration</p>
+        <p className="text-sm text-slate-400">Configure the interface and inspect available system status.</p>
       </div>
 
-      <section className="rounded-2xl border border-[#e6edf5] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-slate-800 dark:bg-slate-900">
+      <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <Server className="mt-0.5 h-5 w-5 text-blue-500" />
             <div>
               <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Service Status</h2>
-              <p className="text-xs text-slate-400">Current status of all system components</p>
+              <p className="text-xs text-slate-400">Service health is unavailable until a backend status endpoint is configured.</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <button
-              type="button"
-              aria-label="Refresh service status"
-              onClick={refresh}
-              className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-50"
-            >
-              <RefreshCw className={cn("h-4 w-4", checking && "animate-spin")} />
-            </button>
-            Last checked: {checkedAt}
-          </div>
+          <span className="text-xs text-slate-400">Status: unknown</span>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {services.map((service) => {
             const Icon = service.icon;
-            const detail = service.title === "Model Service" ? modelLabel : service.detail;
             return (
               <div key={service.title} className="rounded-xl border border-[#e6edf5] px-4 py-3 dark:border-slate-800">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-500">
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
                   <Icon className="h-4 w-4" />
                 </span>
                 <div className="mt-3 text-sm font-semibold text-slate-800 dark:text-slate-100">{service.title}</div>
-                <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-emerald-500">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
                   {service.status}
                 </div>
-                <div className="mt-0.5 text-xs text-slate-400">{detail}</div>
+                <div className="mt-0.5 text-xs text-slate-400">{service.detail}</div>
               </div>
             );
           })}
@@ -224,55 +164,18 @@ export function SystemPage() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#e6edf5] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] dark:border-slate-800 dark:bg-slate-900">
+      <section className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <ClipboardList className="mt-0.5 h-5 w-5 text-blue-500" />
             <div>
               <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Recent Activity</h2>
-              <p className="text-xs text-slate-400">Latest system events and logs</p>
+              <p className="text-xs text-slate-400">Activity requires a backend event feed.</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAll((value) => !value)}
-            className="inline-flex h-9 items-center gap-1 rounded-lg border border-[#e6edf5] px-3 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200"
-          >
-            {showAll ? "Show less" : "View All Logs"}
-            {!showAll && <span aria-hidden="true">→</span>}
-          </button>
         </div>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="text-xs text-slate-400">
-              <tr className="border-y border-[#eef3f8] dark:border-slate-800">
-                {["Time", "Level", "Service", "Message"].map((heading) => (
-                  <th key={heading} className="px-3 py-2 font-medium">
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {visibleLogs.map((log) => (
-                <tr key={`${log.time}-${log.message}`} className="border-b border-[#f3f6fb] dark:border-slate-800">
-                  <td className="whitespace-nowrap px-3 py-3 text-slate-500">{log.time}</td>
-                  <td className="px-3 py-3">
-                    <span
-                      className={cn(
-                        "rounded-md px-2 py-0.5 text-[11px] font-semibold",
-                        log.level === "WARN" ? "bg-amber-100 text-amber-600" : "bg-sky-100 text-sky-600",
-                      )}
-                    >
-                      {log.level}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3 text-slate-500">{log.service}</td>
-                  <td className="px-3 py-3 text-slate-600 dark:text-slate-200">{log.message}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-4 rounded-lg bg-[var(--color-background)] px-4 py-5 text-sm text-[var(--color-text-muted)]">
+          No system activity is available.
         </div>
       </section>
     </div>

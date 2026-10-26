@@ -79,7 +79,7 @@ export function LocalizationPage() {
   const { query, setQuery, pushToast } = useUi();
   const [from, setFrom] = useState("2026-10-10");
   const [to, setTo] = useState("2026-10-16");
-  const [basemap, setBasemap] = useState("satellite");
+  const [basemap, setBasemap] = useState("illustration");
   const [showDetections, setShowDetections] = useState(true);
   const [showRoute, setShowRoute] = useState(true);
   const [showHeatmap, setShowHeatmap] = useState(false);
@@ -148,7 +148,10 @@ export function LocalizationPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-[26px] font-semibold tracking-tight text-slate-800 dark:text-slate-50">Localization</h1>
-          <p className="text-sm text-slate-400">View detected persons on map with estimated locations and UAV metadata</p>
+          <p className="text-sm text-slate-400">Review sample localization records and UAV metadata.</p>
+          <p className="mt-2 max-w-2xl rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+            Sample data only: coordinates, detections, and routes shown here are illustrative and are not live GPS telemetry.
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <DateField label="From" value={from} onChange={(value) => { setFrom(value); setPage(1); }} />
@@ -213,8 +216,8 @@ export function LocalizationPage() {
                   onChange={(event) => setBasemap(event.target.value)}
                   className="h-8 appearance-none rounded-lg border border-[#e6edf5] bg-white pl-2 pr-7 text-xs dark:border-slate-700 dark:bg-slate-900"
                 >
-                  <option value="satellite">Satellite</option>
-                  <option value="map">Map</option>
+                  <option value="illustration">Illustrative terrain</option>
+                  <option value="map">Illustrative grid</option>
                 </select>
                 <ChevronRight className="pointer-events-none absolute right-1.5 top-2 h-3.5 w-3.5 rotate-90 text-slate-400" />
               </label>

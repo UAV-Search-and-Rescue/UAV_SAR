@@ -18,7 +18,7 @@ const items = [
   { to: "/", label: "Dashboard", icon: Home, end: true },
   { to: "/detection", label: "Detection", icon: Scan },
   { to: "/results", label: "Results", icon: ClipboardList },
-  { to: "/alerts", label: "Alerts", icon: Bell, badge: "3" },
+  { to: "/alerts", label: "Alerts", icon: Bell },
   { to: "/localization", label: "Localization", icon: MapPinned },
   { to: "/system", label: "System", icon: Settings },
 ];
@@ -29,7 +29,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-40 flex w-[240px] shrink-0 flex-col border-r border-[#e8eef6] bg-white transition-transform dark:border-slate-800 dark:bg-slate-950 lg:static lg:translate-x-0",
+        "fixed inset-y-0 left-0 z-40 flex w-[240px] shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] transition-transform lg:static lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full",
       )}
     >
@@ -41,6 +41,11 @@ export function Sidebar() {
           </div>
           <div className="text-[11px] text-slate-400">Search &amp; Rescue</div>
         </div>
+      </div>
+      <div className="px-5 pb-4">
+        <span className="inline-flex rounded-md bg-slate-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          Sample interface
+        </span>
       </div>
 
       <nav className="flex flex-col gap-1 px-3">
@@ -71,11 +76,6 @@ export function Sidebar() {
                     strokeWidth={2}
                   />
                   <span className="flex-1">{item.label}</span>
-                  {item.badge && (
-                    <span className="grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[11px] font-semibold text-white">
-                      {item.badge}
-                    </span>
-                  )}
                 </>
               )}
             </NavLink>
