@@ -25,6 +25,12 @@ class ImageMetadata(BaseModel):
     modality: str = "rgb"
 
 
+class Alert(BaseModel):
+    class_name: str
+    confidence: float = Field(ge=0.0, le=1.0)
+    alert: bool
+
+
 class DetectionRequest(BaseModel):
     model_version: str
     image: ImageMetadata
@@ -39,6 +45,7 @@ class DetectionResponse(BaseModel):
     detections: List[Detection]
     alerts: List[Alert] = Field(default_factory=list)
     latency_ms: float
+    result_saved: bool = False
 
 class UAVMetadata(BaseModel):
     latitude: float
@@ -64,8 +71,3 @@ class TargetLocation(BaseModel):
     longitude: Optional[float] = None
     altitude_m: Optional[float] = None
     estimated: bool = True
-
-class Alert(BaseModel):
-    class_name: str
-    confidence: float = Field(ge=0.0, le=1.0)
-    alert: bool

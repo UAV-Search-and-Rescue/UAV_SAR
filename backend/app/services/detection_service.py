@@ -21,6 +21,10 @@ async def run_detection(
     rgb: UploadFile,
     thermal: UploadFile | None,
     model_version: str,
+    confidence_threshold: float,
+    image_size: int,
+    iou_threshold: float,
+    max_detections: int,
 ) -> DetectionResponse:
     request_id = str(uuid4())
     start_time = perf_counter()
@@ -40,6 +44,10 @@ async def run_detection(
         detections = await detector.predict(
             rgb=rgb,
             thermal=thermal,
+            confidence_threshold=confidence_threshold,
+            image_size=image_size,
+            iou_threshold=iou_threshold,
+            max_detections=max_detections,
         )
 
         detections = await localize_detections(
@@ -48,9 +56,12 @@ async def run_detection(
 
         latency_ms = (perf_counter() - start_time) * 1000
 
-        used_modalities = ["rgb"]
-        if thermal is not None:
-            used_modalities.append("thermal")
+        # Report the modalities used by the selected detector.
+        used_modalities = (
+            ["rgb", "thermal"]
+            if model_version == "RGBT"
+            else ["rgb"]
+        )
 
         result = DetectionResponse(
             request_id=request_id,
@@ -62,7 +73,15 @@ async def run_detection(
             latency_ms=latency_ms,
         )
 
-        result_store.save(result)
+        if result_store.enabled:
+            try:
+                result_store.save(result)
+                result.result_saved = True
+            except Exception:
+                logger.exception(
+                    "Inference succeeded but result persistence failed",
+                    extra={"request_id": request_id},
+                )
 
         logger.info(
             "Detection request completed",

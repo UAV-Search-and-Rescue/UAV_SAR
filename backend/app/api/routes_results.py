@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from pymongo.errors import PyMongoError
 
+from app.storage.mongodb import MONGODB_URI
 from app.storage.result_store import MongoDBResultStore
 
 
@@ -12,6 +13,11 @@ result_store = MongoDBResultStore()
 
 @router.get("/results/{request_id}")
 def get_result(request_id: str):
+    if not MONGODB_URI:
+        raise HTTPException(
+            status_code=503,
+            detail="Result storage is not configured",
+        )
     try:
         result = result_store.get(request_id)
     except PyMongoError as exc:

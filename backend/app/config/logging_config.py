@@ -19,4 +19,5 @@ def configure_logging() -> None:
         force=True,
     )
 
-    logging.getLogger().addFilter(RequestIdFilter())
+    for handler in logging.getLogger().handlers:
+        handler.addFilter(RequestIdFilter())
