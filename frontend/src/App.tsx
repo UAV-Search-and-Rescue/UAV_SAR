@@ -1,32 +1,31 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { LoginGate } from './components/LoginGate'
-import { useAuth } from './context/AuthContext'
-import { MissionPlaybackProvider } from './context/MissionPlaybackContext'
-import { AppShell } from './layout/AppShell'
-import { AlertsPage } from './pages/AlertsPage'
-import { MetricsPage } from './pages/MetricsPage'
-import { MissionPage } from './pages/MissionPage'
-import { StreamPage } from './pages/StreamPage'
+import { Navigate, Route, Routes } from "react-router-dom";
+import { AppShell } from "./components/layout/AppShell";
+import { LiveSessionProvider } from "./context/LiveSessionContext";
+import { AlertsPage } from "./pages/AlertsPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { DetectionPage } from "./pages/DetectionPage";
+import { LocalizationPage } from "./pages/LocalizationPage";
+import { ResultsPage } from "./pages/ResultsPage";
 
-export default function App() {
-  const { operator } = useAuth()
-
-  if (!operator) {
-    return <LoginGate />
-  }
-
+export function App() {
   return (
-    <MissionPlaybackProvider>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route index element={<Navigate to="/mission" replace />} />
-          <Route path="/mission" element={<MissionPage />} />
-          <Route path="/stream" element={<StreamPage />} />
+    <LiveSessionProvider>
+      <AppShell>
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/detection" element={<DetectionPage />} />
+          <Route path="/results" element={<ResultsPage />} />
+          <Route path="/results/:resultId" element={<ResultsPage />} />
           <Route path="/alerts" element={<AlertsPage />} />
-          <Route path="/metrics" element={<MetricsPage />} />
-          <Route path="*" element={<Navigate to="/mission" replace />} />
-        </Route>
-      </Routes>
-    </MissionPlaybackProvider>
-  )
+          <Route path="/alerts/:alertId" element={<AlertsPage />} />
+          <Route path="/localization" element={<LocalizationPage />} />
+          <Route path="/localization/:locationId" element={<LocalizationPage />} />
+          <Route path="/models" element={<Navigate to="/" replace />} />
+          <Route path="/system" element={<Navigate to="/" replace />} />
+          <Route path="/demo" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AppShell>
+    </LiveSessionProvider>
+  );
 }
